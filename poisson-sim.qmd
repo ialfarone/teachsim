@@ -74,7 +74,7 @@ library(dplyr)
 library(MASS)
 
 set.seed(2025)  
-N = 200
+N = 1000
 Therapy = rbinom(N, 1, 0.5)
 Stress = runif(N, min = 1, max = 5)
 

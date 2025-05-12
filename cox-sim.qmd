@@ -1,0 +1,152 @@
+---
+title: "Cox Regression"
+format: 
+  html:
+    page-layout: custom
+server: shiny
+---
+
+## Introduction to Cox Regression
+
+Cox regression is a statistical method used to model time‑to‑event data. It is widely applied in medicine, social sciences, engineering, and psychology, particularly when some participants do not experience the event of interest within the observation window—a circumstance known as **censoring**.
+
+The model evaluates the influence of covariates on the **hazard function**, which represents the instantaneous probability that an event occurs at time *t*, given that the subject has survived up to that moment. A crucial assumption is that of **proportional hazards**: the ratio of hazards between any two groups remains constant over time.
+
+### The Ingredients of a Cox Model
+
+A Cox model relates survival time to predictor variables that may be **categorical** 
+(e.g., treatment group) or **continuous** (e.g., age) and takes the form
+
+$$
+h(t \mid X)
+  = h_0(t) \, \exp\bigl(\beta_1 X_1 + \beta_2 X_2 + \dots + \beta_p X_p\bigr),
+$$
+
+where
+
+-   $h(t \mid X)$ is the hazard at time \$t\$ for an individual with covariates $X$.
+-   $h_0(t)$ is the **baseline hazard** (i.e., the hazard when all $X_i = 0$).
+-   $\beta_i$ are regression coefficients associated with each covariate.
+
+Because the baseline hazard is left unspecified, the model is *semi‑parametric*; it focuses on estimating the relative effects of covariates rather than the shape of \$h_0(t)\$ itself.
+
+### What Is a Hazard Ratio?
+
+The **hazard ratio (HR)** is obtained by exponentiating a coefficient: $\exp(\beta)$. 
+It compares the hazard of one group with that of a reference group.
+
+-   HR > 1 higher instantaneous risk of the event.
+-   HR < 1 lower instantaneous risk.
+-   HR ≈ 1 no detectable difference.
+
+For example, in clinical psychology an HR=0.60 for a therapy condition implies a 40 % reduction in the instantaneous risk of relapse relative to the control group.
+
+### Kaplan–Meier Estimator
+
+The **Kaplan–Meier estimator** is a non‑parametric technique for estimating the survivor function while accommodating censored observations. It yields a stepwise survival curve, from which the median survival time (more robust than the mean) can be reported.
+
+```{r}
+#| include: false 
+library(shiny) 
+library(survival) 
+library(survminer) 
+library(dplyr) 
+library(ggplot2) 
+set.seed(42)
+```
+
+## Interactive Illustration: Therapy Duration and Relapse in Depression
+
+In a psychological study, we examine whether the **duration of therapy** (short vs. long) affects the **time until relapse** in patients previously diagnosed with depression. We also control for **gender**, as some studies suggest gender differences in relapse rates.
+
+Use the sidebar to manipulate the coefficients and baseline hazard, then inspect the simulated data, Kaplan–Meier curves, and Cox‑model summary in real time.
+
+```{r}
+#| panel: sidebar
+sliderInput("beta_therapy", "Effect of Therapy (β):", min = -2, max = 2, value = -0.6, step = 0.1)
+sliderInput("beta_gender", "Effect of Gender (β):", min = -2, max = 2, value = 0.4, step = 0.1)
+sliderInput("baseline", "Baseline Hazard:", min = 0.01, max = 0.1, value = 0.03, step = 0.005)
+checkboxInput("adj_gender", "Adjust for Gender", value = TRUE)
+```
+
+```{r}
+#| context: server
+library(shiny) 
+library(survival) 
+library(survminer) 
+library(dplyr) 
+library(ggplot2) 
+
+# Reactive data‑generating mechanism
+psych_data <- reactive({
+  n <- 300
+  gender  <- factor(sample(c("Male", "Female"), n, replace = TRUE))
+  therapy <- factor(sample(c("Short", "Long"),  n, replace = TRUE))
+
+  linpred <- input$beta_therapy * (therapy == "Long") +
+             input$beta_gender  * (gender  == "Male")
+
+  time            <- rexp(n, rate = input$baseline * exp(linpred))
+  censoring_time  <- runif(n, 5, 40)
+  status          <- ifelse(time <= censoring_time, 1, 0)
+  time            <- pmin(time, censoring_time)
+  data.frame(time, status, therapy, gender)
+})
+
+# Head of the simulated data
+output$simData <- renderPrint({
+  head(psych_data())
+})
+
+# Kaplan–Meier curve
+output$kmCurve <- renderPlot({
+  data <- psych_data()
+  fit_km <- survfit(Surv(time, status) ~ therapy, data = data)
+  ggsurvplot(fit_km, data = data, pval = TRUE, conf.int = TRUE,
+             legend.title = "Therapy Duration",
+             xlab = "Time to relapse (weeks)",
+             ylab = "Survival probability",
+             ggtheme = theme_minimal())
+})
+
+
+# Cox‑model summary
+output$coxSummary <- renderPrint({
+  formula <- if (input$adj_gender) {
+    Surv(time, status) ~ therapy + gender
+  } else {
+    Surv(time, status) ~ therapy
+  }
+  fit_cox <- coxph(formula, data = psych_data())
+  summary(fit_cox)
+})
+```
+
+### Simulated Dataset (first six rows)
+
+```{r}
+#| output: shiny
+verbatimTextOutput("simData")
+```
+
+### Cox‑Model Summary
+
+```{r}
+#| output: shiny
+verbatimTextOutput("coxSummary")
+```
+
+### Kaplan–Meier Survival Curves
+
+```{r}
+#| output: shiny
+plotOutput("kmCurve")
+```
+
+------------------------------------------------------------------------
+
+### Interpretation
+
+-   An **HR \< 1** for the *Long* therapy condition indicates that extended therapy reduces the instantaneous risk of relapse.
+-   The gender adjustment allows for an assessment of whether the therapy effect is robust across genders.
+-   The Kaplan–Meier curves offer a visual corroboration of the model‑based findings.
