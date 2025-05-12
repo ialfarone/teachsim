@@ -20,6 +20,41 @@ ul.task-list li input[type="checkbox"] {
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
 }
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
 </style>
 
 
@@ -34,6 +69,13 @@ ul.task-list li input[type="checkbox"] {
 <script src="cox-sim_files/libs/bootstrap/bootstrap.min.js"></script>
 <link href="cox-sim_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
 <link href="cox-sim_files/libs/bootstrap/bootstrap-bb462d781dde1847d9e3ccf7736099dd.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<meta name="shinylive:serviceworker_dir" content=".">
+<script src="cox-sim_files/libs/quarto-contrib/shinylive-0.9.1/shinylive/load-shinylive-sw.js" type="module"></script>
+<script src="cox-sim_files/libs/quarto-contrib/shinylive-0.9.1/shinylive/run-python-blocks.js" type="module"></script>
+<link href="cox-sim_files/libs/quarto-contrib/shinylive-0.9.1/shinylive/shinylive.css" rel="stylesheet">
+<link href="cox-sim_files/libs/quarto-contrib/shinylive-quarto-css/shinylive-quarto.css" rel="stylesheet">
+<link href="cox-sim_files/libs/htmltools-fill-0.5.8.1/fill.css" rel="stylesheet">
+
 
   <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
   <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
@@ -128,44 +170,86 @@ h(t \mid X)
 <h2 data-anchor-id="interactive-illustration-therapy-duration-and-relapse-in-depression">Interactive Illustration: Therapy Duration and Relapse in Depression</h2>
 <p>In a psychological study, we examine whether the <strong>duration of therapy</strong> (short vs.&nbsp;long) affects the <strong>time until relapse</strong> in patients previously diagnosed with depression. We also control for <strong>gender</strong>, as some studies suggest gender differences in relapse rates.</p>
 <p>Use the sidebar to manipulate the coefficients and baseline hazard, then inspect the simulated data, Kaplan–Meier curves, and Cox‑model summary in real time.</p>
-<div class="panel-grid layout-sidebar ms-md-0 layout-sidebar-left">
-<div class="cell panel-sidebar card bg-light p-2 g-col-24 g-col-lg-7">
-<div class="cell-output-display">
-<div class="form-group shiny-input-container">
-<label class="control-label" id="beta_therapy-label" for="beta_therapy">Effect of Therapy (β):</label>
-<input class="js-range-slider" id="beta_therapy" data-skin="shiny" data-min="-2" data-max="2" data-from="-0.6" data-step="0.1" data-grid="true" data-grid-num="10" data-grid-snap="false" data-prettify-separator="," data-prettify-enabled="true" data-keyboard="true" data-data-type="number">
-</div>
-</div>
-<div class="cell-output-display">
-<div class="form-group shiny-input-container">
-<label class="control-label" id="beta_gender-label" for="beta_gender">Effect of Gender (β):</label>
-<input class="js-range-slider" id="beta_gender" data-skin="shiny" data-min="-2" data-max="2" data-from="0.4" data-step="0.1" data-grid="true" data-grid-num="10" data-grid-snap="false" data-prettify-separator="," data-prettify-enabled="true" data-keyboard="true" data-data-type="number">
-</div>
-</div>
-<div class="cell-output-display">
-<div class="form-group shiny-input-container">
-<label class="control-label" id="baseline-label" for="baseline">Baseline Hazard:</label>
-<input class="js-range-slider" id="baseline" data-skin="shiny" data-min="0.01" data-max="0.1" data-from="0.03" data-step="0.005" data-grid="true" data-grid-num="9" data-grid-snap="false" data-prettify-separator="," data-prettify-enabled="true" data-keyboard="true" data-data-type="number">
-</div>
-</div>
-<div class="cell-output-display">
-<div class="form-group shiny-input-container">
-<div class="checkbox">
-<label>
-<input id="adj_gender" type="checkbox" class="shiny-input-checkbox" checked="checked">
-<span>Adjust for Gender</span>
-</label>
-</div>
-</div>
-</div>
-</div>
-<div class="panel-fill g-col-24 g-col-lg-17 pt-3 pt-lg-0">
+<pre class="shinylive-r" data-engine="r"><code>#| '!! shinylive warning !!': |
+#|   shinylive does not work in self-contained HTML documents.
+#|   Please set `embed-resources: false` in your metadata.
+#| standalone: true
 
-</div>
-</div>
+library(shiny)
+library(survival)
+library(survminer)
+library(dplyr)
+library(ggplot2)
+
+ui &lt;- page_sidebar(
+  title = "Cox Regression Simulator",
+  sidebar = sidebar(
+    sliderInput("beta_therapy", "Effect of Therapy (β):", min = -1.5, max = 1.5, value = -0.6, step = 0.1),
+    sliderInput("beta_gender",  "Effect of Gender (β):",  min = -1.5, max = 1.5, value =  0.4, step = 0.1),
+    sliderInput("baseline",     "Baseline Hazard:",       min =  0.01, max = 0.1, value = 0.03, step = 0.005),
+    checkboxInput("adj_gender", "Adjust for Gender", value = TRUE)
+  ),
+  mainPanel(
+    h4("Simulated Dataset (first six rows)"),
+    verbatimTextOutput("simData"),
+    h4("Cox‑Model Summary"),
+    verbatimTextOutput("coxSummary"),
+    h4("Kaplan–Meier Survival Curves"),
+    plotOutput("kmCurve")
+  )
+)
+
+server &lt;- function(input, output, session) {
+
+  # Reactive data-generating mechanism
+  psych_data &lt;- reactive({
+    n &lt;- 300
+    gender  &lt;- factor(sample(c("Male", "Female"), n, replace = TRUE))
+    therapy &lt;- factor(sample(c("Short", "Long"),  n, replace = TRUE))
+
+    linpred &lt;- input$beta_therapy * (therapy == "Long") +
+               input$beta_gender  * (gender  == "Male")
+
+    time            &lt;- rexp(n, rate = input$baseline * exp(linpred))
+    censoring_time  &lt;- runif(n, 5, 40)
+    status          &lt;- ifelse(time &lt;= censoring_time, 1, 0)
+    time            &lt;- pmin(time, censoring_time)
+    data.frame(time, status, therapy, gender)
+  })
+
+  # Display first six rows of data
+  output$simData &lt;- renderPrint({
+    head(psych_data())
+  })
+
+  # Display Kaplan–Meier curve
+  output$kmCurve &lt;- renderPlot({
+    data &lt;- psych_data()
+    fit_km &lt;- survfit(Surv(time, status) ~ therapy, data = data)
+    ggsurvplot(fit_km, data = data, pval = TRUE, conf.int = TRUE,
+               legend.title = "Therapy Duration",
+               xlab = "Time to relapse (weeks)",
+               ylab = "Survival probability",
+               ggtheme = theme_minimal())
+  })
+
+  # Display Cox model summary
+  output$coxSummary &lt;- renderPrint({
+    formula &lt;- if (input$adj_gender) {
+      Surv(time, status) ~ therapy + gender
+    } else {
+      Surv(time, status) ~ therapy
+    }
+    fit_cox &lt;- coxph(formula, data = psych_data())
+    summary(fit_cox)
+  })
+}
+
+shinyApp(ui, server)</code></pre>
 <section id="simulated-dataset-first-six-rows" class="level3">
 <h3 data-anchor-id="simulated-dataset-first-six-rows">Simulated Dataset (first six rows)</h3>
 <div class="cell">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">verbatimTextOutput</span>(<span class="st">"simData"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <pre class="shiny-text-output noplaceholder" id="simData"></pre>
 </div>
@@ -174,6 +258,7 @@ h(t \mid X)
 <section id="coxmodel-summary" class="level3">
 <h3 data-anchor-id="coxmodel-summary">Cox‑Model Summary</h3>
 <div class="cell">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">verbatimTextOutput</span>(<span class="st">"coxSummary"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <pre class="shiny-text-output noplaceholder" id="coxSummary"></pre>
 </div>
@@ -182,6 +267,7 @@ h(t \mid X)
 <section id="kaplanmeier-survival-curves" class="level3">
 <h3 data-anchor-id="kaplanmeier-survival-curves">Kaplan–Meier Survival Curves</h3>
 <div class="cell">
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plotOutput</span>(<span class="st">"kmCurve"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <div class="shiny-plot-output html-fill-item" id="kmCurve" style="width:100%;height:400px;"></div>
 </div>
@@ -195,109 +281,6 @@ h(t \mid X)
 <li>The gender adjustment allows for an assessment of whether the therapy effect is robust across genders.</li>
 <li>The Kaplan–Meier curves offer a visual corroboration of the model‑based findings.</li>
 </ul>
-<p>
-<script type="application/shiny-prerendered" data-context="server">
-library(shiny) 
-library(survival) 
-library(survminer) 
-library(dplyr) 
-library(ggplot2) 
-
-# Reactive data‑generating mechanism
-psych_data <- reactive({
-  n <- 300
-  gender  <- factor(sample(c("Male", "Female"), n, replace = TRUE))
-  therapy <- factor(sample(c("Short", "Long"),  n, replace = TRUE))
-
-  linpred <- input$beta_therapy * (therapy == "Long") +
-             input$beta_gender  * (gender  == "Male")
-
-  time            <- rexp(n, rate = input$baseline * exp(linpred))
-  censoring_time  <- runif(n, 5, 40)
-  status          <- ifelse(time <= censoring_time, 1, 0)
-  time            <- pmin(time, censoring_time)
-  data.frame(time, status, therapy, gender)
-})
-
-# Head of the simulated data
-output$simData <- renderPrint({
-  head(psych_data())
-})
-
-# Kaplan–Meier curve
-output$kmCurve <- renderPlot({
-  data <- psych_data()
-  fit_km <- survfit(Surv(time, status) ~ therapy, data = data)
-  ggsurvplot(fit_km, data = data, pval = TRUE, conf.int = TRUE,
-             legend.title = "Therapy Duration",
-             xlab = "Time to relapse (weeks)",
-             ylab = "Survival probability",
-             ggtheme = theme_minimal())
-})
-
-
-# Cox‑model summary
-output$coxSummary <- renderPrint({
-  formula <- if (input$adj_gender) {
-    Surv(time, status) ~ therapy + gender
-  } else {
-    Surv(time, status) ~ therapy
-  }
-  fit_cox <- coxph(formula, data = psych_data())
-  summary(fit_cox)
-})
-</script>
- 
-<script type="application/shiny-prerendered" data-context="server-extras">
-ojs_define <- function(..., .session = shiny::getDefaultReactiveDomain()) {
-  quos <- rlang::enquos(...)
-  vars <- rlang::list2(...)
-  nm <- names(vars)
-  if (is.null(nm)) {
-    nm <- rep_len("", length(vars))
-  }
-  mapply(
-    function(q, nm, val) {
-      # Infer name, if possible
-      if (nm == "") {
-        tryCatch(
-          {
-            nm <- rlang::as_name(q)
-          },
-          error = function(e) {
-            code <- paste(collapse = "\n", deparse(rlang::f_rhs(q)))
-            stop(
-              "ojs_define() could not create a name for the argument: ",
-              code
-            )
-          }
-        )
-      }
-      .session$output[[nm]] <- val
-      outputOptions(.session$output, nm, suspendWhenHidden = FALSE)
-      .session$sendCustomMessage("ojs-export", list(name = nm))
-      NULL
-    },
-    quos,
-    nm,
-    vars,
-    SIMPLIFY = FALSE,
-    USE.NAMES = FALSE
-  )
-  invisible()
-}
-</script>
-</p>
-<!--html_preserve-->
-<script type="application/shiny-prerendered" data-context="dependencies">
-{"type":"list","attributes":{},"value":[{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files","pkgVersion"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["ionrangeslider-javascript"]},{"type":"character","attributes":{},"value":["2.3.1"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["www/shared/ionrangeslider"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["js/ion.rangeSlider.min.js"]},{"type":"NULL"},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["shiny"]},{"type":"logical","attributes":{},"value":[true]},{"type":"character","attributes":{},"value":["1.10.0"]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files","pkgVersion"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["strftime"]},{"type":"character","attributes":{},"value":["0.9.2"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["www/shared/strftime"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["strftime-min.js"]},{"type":"NULL"},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["shiny"]},{"type":"logical","attributes":{},"value":[true]},{"type":"character","attributes":{},"value":["1.10.0"]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files","pkgVersion"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["ionrangeslider-css"]},{"type":"character","attributes":{},"value":["2.3.1"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["www/shared/ionrangeslider"]}]},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["css/ion.rangeSlider.css"]},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["shiny"]},{"type":"logical","attributes":{},"value":[true]},{"type":"character","attributes":{},"value":["1.10.0"]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files","pkgVersion"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["ionrangeslider-javascript"]},{"type":"character","attributes":{},"value":["2.3.1"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["www/shared/ionrangeslider"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["js/ion.rangeSlider.min.js"]},{"type":"NULL"},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["shiny"]},{"type":"logical","attributes":{},"value":[true]},{"type":"character","attributes":{},"value":["1.10.0"]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files","pkgVersion"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["strftime"]},{"type":"character","attributes":{},"value":["0.9.2"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["www/shared/strftime"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["strftime-min.js"]},{"type":"NULL"},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["shiny"]},{"type":"logical","attributes":{},"value":[true]},{"type":"character","attributes":{},"value":["1.10.0"]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files","pkgVersion"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["ionrangeslider-css"]},{"type":"character","attributes":{},"value":["2.3.1"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["www/shared/ionrangeslider"]}]},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["css/ion.rangeSlider.css"]},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["shiny"]},{"type":"logical","attributes":{},"value":[true]},{"type":"character","attributes":{},"value":["1.10.0"]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files","pkgVersion"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["ionrangeslider-javascript"]},{"type":"character","attributes":{},"value":["2.3.1"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["www/shared/ionrangeslider"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["js/ion.rangeSlider.min.js"]},{"type":"NULL"},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["shiny"]},{"type":"logical","attributes":{},"value":[true]},{"type":"character","attributes":{},"value":["1.10.0"]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files","pkgVersion"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["strftime"]},{"type":"character","attributes":{},"value":["0.9.2"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["www/shared/strftime"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["strftime-min.js"]},{"type":"NULL"},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["shiny"]},{"type":"logical","attributes":{},"value":[true]},{"type":"character","attributes":{},"value":["1.10.0"]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files","pkgVersion"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["ionrangeslider-css"]},{"type":"character","attributes":{},"value":["2.3.1"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["www/shared/ionrangeslider"]}]},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["css/ion.rangeSlider.css"]},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["shiny"]},{"type":"logical","attributes":{},"value":[true]},{"type":"character","attributes":{},"value":["1.10.0"]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files","pkgVersion"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["htmltools-fill"]},{"type":"character","attributes":{},"value":["0.5.8.1"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["fill"]}]},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["fill.css"]},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["htmltools"]},{"type":"logical","attributes":{},"value":[true]},{"type":"character","attributes":{},"value":["0.5.8.1"]}]}]}
-</script>
-<!--/html_preserve-->
-<!--html_preserve-->
-<script type="application/shiny-prerendered" data-context="execution_dependencies">
-{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["packages"]}},"value":[{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["packages","version"]},"class":{"type":"character","attributes":{},"value":["data.frame"]},"row.names":{"type":"integer","attributes":{},"value":[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73]}},"value":[{"type":"character","attributes":{},"value":["abind","backports","base","broom","bslib","cachem","car","carData","cli","compiler","data.table","datasets","digest","dplyr","evaluate","farver","fastmap","Formula","generics","ggplot2","ggpubr","ggsignif","glue","graphics","grDevices","grid","gridExtra","gtable","htmltools","httpuv","jquerylib","jsonlite","km.ci","KMsurv","knitr","later","lattice","lifecycle","magrittr","Matrix","memoise","methods","mime","pillar","pkgconfig","promises","purrr","R6","RColorBrewer","Rcpp","rlang","rmarkdown","rstatix","rstudioapi","sass","scales","shiny","splines","stats","survival","survminer","survMisc","tibble","tidyr","tidyselect","tools","utils","vctrs","withr","xfun","xtable","yaml","zoo"]},{"type":"character","attributes":{},"value":["1.4-8","1.5.0","4.5.0","1.0.8","0.9.0","1.1.0","3.1-3","3.0-5","3.6.4","4.5.0","1.17.0","4.5.0","0.6.37","1.1.4","1.0.3","2.1.2","1.2.0","1.2-5","0.1.3","3.5.2","0.6.0","0.6.4","1.8.0","4.5.0","4.5.0","4.5.0","2.3","0.3.6","0.5.8.1","1.6.16","0.1.4","2.0.0","0.5-6","0.1-5","1.50","1.4.2","0.22-6","1.0.4","2.0.3","1.7-3","2.0.1","4.5.0","0.13","1.10.2","2.0.3","1.3.2","1.0.4","2.6.1","1.1-3","1.0.14","1.1.6","2.29","0.7.2","0.17.1","0.4.10","1.4.0","1.10.0","4.5.0","4.5.0","3.8-3","0.5.0","0.5.6","3.2.1","1.3.1","1.2.1","4.5.0","4.5.0","0.6.5","3.0.2","0.52","1.8-4","2.3.10","1.8-14"]}]}]}
-</script>
-<!--/html_preserve-->
 </section>
 </section>
 
